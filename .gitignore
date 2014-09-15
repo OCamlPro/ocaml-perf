@@ -1,0 +1,6 @@
+*.byte
+*.native
+setup.data
+setup.exe
+setup.log
+_build

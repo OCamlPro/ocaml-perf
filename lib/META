@@ -1,0 +1,12 @@
+# OASIS_START
+# DO NOT EDIT (digest: 2102804a90c5f1eb5cf5ecd02b21f79c)
+version = "0.1"
+description = "Binding to perf_event_open(2)"
+requires = "ppx_deriving"
+archive(byte) = "perf.cma"
+archive(byte, plugin) = "perf.cma"
+archive(native) = "perf.cmxa"
+archive(native, plugin) = "perf.cmxs"
+exists_if = "perf.cma"
+# OASIS_STOP
+
