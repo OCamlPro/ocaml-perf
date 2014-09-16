@@ -10,6 +10,7 @@
 
 #include <caml/mlvalues.h>
 #include <caml/fail.h>
+#include <caml/memory.h>
 
 static long
 perf_event_open(struct perf_event_attr *hw_event, pid_t pid,
@@ -23,62 +24,70 @@ perf_event_open(struct perf_event_attr *hw_event, pid_t pid,
 
 CAMLprim value perf_events_enable_all (value unit)
 {
+  CAMLparam1(unit);
   int ret;
   ret = prctl(PR_TASK_PERF_EVENTS_ENABLE, 0, 0, 0, 0);
 
   if(ret == -1)
     caml_failwith(strerror(errno));
 
-  return Val_unit;
+  CAMLreturn(Val_unit);
 }
 
 CAMLprim value perf_events_disable_all (value unit)
 {
+  CAMLparam1(unit);
   int ret;
   ret = prctl(PR_TASK_PERF_EVENTS_DISABLE, 0, 0, 0, 0);
 
   if(ret == -1)
     caml_failwith(strerror(errno));
 
-  return Val_unit;
+  CAMLreturn(Val_unit);
 }
 
 CAMLprim value perf_event_ioc_enable (value fd)
 {
+  CAMLparam1(fd);
   int ret;
   ret = ioctl(Int_val(fd), PERF_EVENT_IOC_ENABLE);
 
   if(ret == -1)
     caml_failwith(strerror(errno));
 
-  return Val_unit;
+  CAMLreturn(Val_unit);
 }
 
 CAMLprim value perf_event_ioc_disable (value fd)
 {
+  CAMLparam1(fd);
   int ret;
   ret = ioctl(Int_val(fd), PERF_EVENT_IOC_DISABLE);
 
   if(ret == -1)
     caml_failwith(strerror(errno));
 
-  return Val_unit;
+  CAMLreturn(Val_unit);
 }
 
 CAMLprim value perf_event_ioc_reset (value fd)
 {
+  CAMLparam1(fd);
   int ret;
   ret = ioctl(Int_val(fd), PERF_EVENT_IOC_RESET);
 
   if(ret == -1)
     caml_failwith(strerror(errno));
 
-  return Val_unit;
+  CAMLreturn(Val_unit);
 }
 
 CAMLprim value stub_perf_event_open (value kind, value attr_flags,
 				     value pid, value cpu, value group_fd, value flags)
 {
+  CAMLparam5(kind, attr_flags, pid, cpu, group_fd);
+  CAMLxparam1(flags);
+
   int ret;
   int c_flags = 0;
 
@@ -131,7 +140,7 @@ CAMLprim value stub_perf_event_open (value kind, value attr_flags,
   if(ret == -1)
     caml_failwith(strerror(errno));
 
-  return Val_int(ret);
+  CAMLreturn(Val_int(ret));
 }
 
 CAMLprim value stub_perf_event_open_byte (value *argv, int argn)
