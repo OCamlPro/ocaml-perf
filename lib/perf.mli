@@ -98,7 +98,7 @@ val make : ?pid:int -> ?cpu:int -> ?group:t -> ?flags:flag list -> Attr.t -> t
 val kind : t -> Attr.kind
 (** [kind c] is the kind of events that this counter counts. *)
 
-val read : t -> Int64.t
+val read : t -> int64
 (** [read c] is the value of the counter [c]. *)
 
 val reset : t -> unit

@@ -92,7 +92,7 @@ let read c =
   let buf = Bytes.create 8 in
   let nb_read = Unix.read c.fd buf 0 8 in
   assert (nb_read = 8);
-  Int64.of_string buf
+  EndianBytes.LittleEndian.get_int64 buf 0
 
 let reset c = perf_event_ioc_reset c.fd
 let enable c = perf_event_ioc_enable c.fd
@@ -104,11 +104,11 @@ type result = {
   stderr: string;
 }
 
-let string_of_channel ic =
+let string_of_fd fd =
   let buf = Buffer.create 10 in
   let bytes = Bytes.create 4096 in
   let rec drain () =
-    match input ic bytes 0 4096 with
+    match Unix.read fd bytes 0 4096 with
     | 0 -> Buffer.contents buf
     | n -> Buffer.add_subbytes buf bytes 0 n; drain ()
   in drain ()
@@ -119,22 +119,21 @@ let with_process ~attrs ~cmd =
         kind = a.kind
       }) attrs in
   let counters = List.map make attrs in
-  let chd_stdout_pipe_in, chd_stdout_pipe_out = Unix.pipe () in
-  let chd_stderr_pipe_in, chd_stderr_pipe_out = Unix.pipe () in
-  let chd_stdout = Unix.in_channel_of_descr chd_stdout_pipe_in in
-  let chd_stderr = Unix.in_channel_of_descr chd_stderr_pipe_in in
+  let chd_stdout_read, chd_stdout_write = Unix.pipe () in
+  let chd_stderr_read, chd_stderr_write = Unix.pipe () in
   match Unix.fork () with
   | 0 ->
       (* child *)
-      Unix.(dup2 chd_stdout_pipe_out stdout);
-      Unix.(dup2 chd_stderr_pipe_out stderr);
+      Unix.(dup2 chd_stdout_write stdout; close chd_stdout_write);
+      Unix.(dup2 chd_stderr_write stderr; close chd_stderr_write);
       Unix.execvp (List.hd cmd) (Array.of_list cmd)
   | n ->
       (* parent *)
-      let _ = Unix.waitpid [] 0 in
+      let _ = Unix.waitpid [] n in
       List.iter disable counters;
+      Unix.(close chd_stdout_write; close chd_stderr_write);
       {
         measures = List.map (fun c -> c.kind, read c) counters;
-        stdout = string_of_channel chd_stdout;
-        stderr = string_of_channel chd_stderr;
+        stdout = string_of_fd chd_stdout_read;
+        stderr = string_of_fd chd_stderr_read;
       }
