@@ -1,0 +1,9 @@
+PKG perf
+S lib/.
+S lib_test/.
+B _build/lib
+B _build/lib_test
+PKG findlib
+PKG ppx_deriving
+PKG oUnit
+PKG ocplib-endian

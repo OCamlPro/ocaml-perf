@@ -12,5 +12,18 @@ Library perf
   Path: lib
   Modules: Perf
   CSources: perf_stubs.c
-  BuildDepends: ppx_deriving
+  BuildDepends: ocplib-endian, ppx_deriving
   CompiledObject: best
+
+Executable test
+  Path: lib_test
+  MainIs: test.ml
+  Build$: flag(tests)
+  CompiledObject: best
+  Install: false
+  BuildDepends: perf, oUnit
+
+Test test
+  Run$: flag(tests)
+  Command: $test
+  WorkingDirectory: lib_test
