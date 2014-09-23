@@ -1,8 +1,8 @@
 # OASIS_START
-# DO NOT EDIT (digest: dec5e93646260ca81694db6a1170594b)
+# DO NOT EDIT (digest: e83193fbdcd37d25e2b00f0707a74d95)
 version = "0.1"
 description = "Binding to perf_event_open(2)"
-requires = "ocplib-endian ppx_deriving"
+requires = "ocplib-endian ppx_deriving sexplib"
 archive(byte) = "perf.cma"
 archive(byte, plugin) = "perf.cma"
 archive(native) = "perf.cmxa"

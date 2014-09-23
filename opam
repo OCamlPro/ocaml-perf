@@ -5,11 +5,11 @@ maintainer: "Vincent Bernardoff <vincent.bernardoff@ocamlpro.com>"
 authors: "Vincent Bernardoff <vincent.bernardoff@ocamlpro.com>"
 homepage: "http://github.com/vbmithr/ocaml-perf"
 bug-reports: "http://github.com/OCamlPro/ocaml-perf/issues"
-licence: "GPLv2"
+license: "GPLv2"
 build: [
   [ make ]
   [ make "install" ]
 ]
-uninstall: [ "ocamlfind" "remove" "perf" ]
-depends: ["ocamlfind" {build} "ocplib-endian" "ppx_deriving" ]
+remove: [ "ocamlfind" "remove" "perf" ]
+depends: ["ocamlfind" {build} "ocplib-endian" "ppx_deriving" "sexplib"]
 dev-repo: "git://github.com/vbmithr/ocaml-perf"
