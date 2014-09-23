@@ -33,12 +33,18 @@ module Attr : sig
     | Emulation_faults
     | Dummy
 
+  val sexp_of_kind : kind -> Sexplib.Sexp.t
+  val kind_of_sexp : Sexplib.Sexp.t -> kind
+
   type t
   (** Opaque type of a perf event attribute. *)
 
   val make : ?flags:flag list -> kind -> t
   (** [make ?flags kind] is a perf event attribute of type [kind],
       with flags [flags]. *)
+
+  val kind_of_enum : int -> kind option
+  val kind_to_enum : kind -> int
 end
 
 type flag =
@@ -112,18 +118,18 @@ val disable : t -> unit
        generate overflows but does continue to exist and maintain its
        count value. *)
 
-type result = private {
-  measures: (Attr.kind * int64) list;
+type execution = private {
+  return_value: int;
   stdout: string;
   stderr: string;
+  data: (Attr.kind * int64) list;
 }
 (** Type returned by [with_process] *)
 
-val with_process : attrs:Attr.t list ->
-  cmd:string list -> result
-(** [with_process ~attrs ~cmd] is an association list containing the
-    results from the measurement of [~attrs] on the execution of the
-    program described by [~cmd]. *)
+val with_process : ?env:string list -> string list -> Attr.t list -> execution
+(** [with_process ?env cmd attrs] is a value of type execution
+    containing the results from the measurement of [attrs] on an
+    execution of the program described by [cmd]. *)
 
 val enable_all : unit -> unit
 (** A process can enable or disable all the event groups that are

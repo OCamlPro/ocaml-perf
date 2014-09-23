@@ -35,6 +35,59 @@ module Attr = struct
     | Dummy
         [@@deriving Enum]
 
+  let sexp_of_kind k =
+    let open Sexplib.Sexp in
+    match k with
+    | Cycles -> Atom "Cycles"
+    | Instructions -> Atom "Instructions"
+    | Cache_references -> Atom "Cache_references"
+    | Cache_misses -> Atom "Cache_misses"
+    | Branch_instructions -> Atom "Branch_instructions"
+    | Branch_misses -> Atom "Branch_misses"
+    | Bus_cycles -> Atom "Bus_cycles"
+    | Stalled_cycles_frontend -> Atom "Stalled_cycles_frontend"
+    | Stalled_cycles_backend -> Atom "Stalled_cycles_backend"
+    | Ref_cpu_cycles -> Atom "Ref_cpu_cycles"
+
+    (** Software *)
+    | Cpu_clock -> Atom "Cpu_clock"
+    | Task_clock -> Atom "Task_clock"
+    | Page_faults -> Atom "Page_faults"
+    | Context_switches -> Atom "Context_switches"
+    | Cpu_migrations -> Atom "Cpu_migrations"
+    | Page_faults_min -> Atom "Page_faults_min"
+    | Page_faults_maj -> Atom "Page_faults_maj"
+    | Alignment_faults -> Atom "Alignment_faults"
+    | Emulation_faults -> Atom "Emulation_faults"
+    | Dummy -> Atom "Dummy"
+
+  let kind_of_sexp s =
+    let open Sexplib.Sexp in
+    match s with
+    | Atom "Cycles" -> Cycles
+    | Atom "Instructions" -> Instructions
+    | Atom "Cache_references" -> Cache_references
+    | Atom "Cache_misses" -> Cache_misses
+    | Atom "Branch_instructions" -> Branch_instructions
+    | Atom "Branch_misses" -> Branch_misses
+    | Atom "Bus_cycles" -> Bus_cycles
+    | Atom "Stalled_cycles_frontend" -> Stalled_cycles_frontend
+    | Atom "Stalled_cycles_backend" -> Stalled_cycles_backend
+    | Atom "Ref_cpu_cycles" -> Ref_cpu_cycles
+
+    (** Software *)
+    | Atom "Cpu_clock" -> Cpu_clock
+    | Atom "Task_clock" -> Task_clock
+    | Atom "Page_faults" -> Page_faults
+    | Atom "Context_switches" -> Context_switches
+    | Atom "Cpu_migrations" -> Cpu_migrations
+    | Atom "Page_faults_min" -> Page_faults_min
+    | Atom "Page_faults_maj" -> Page_faults_maj
+    | Atom "Alignment_faults" -> Alignment_faults
+    | Atom "Emulation_faults" -> Emulation_faults
+    | Atom "Dummy" -> Dummy
+    | _ -> invalid_arg "kind_of_sexp"
+
   type t = {
     flags: flag list;
     kind: kind
@@ -98,10 +151,11 @@ let reset c = perf_event_ioc_reset c.fd
 let enable c = perf_event_ioc_enable c.fd
 let disable c = perf_event_ioc_disable c.fd
 
-type result = {
-  measures: (Attr.kind * int64) list;
+type execution = {
+  return_value: int;
   stdout: string;
   stderr: string;
+  data: (Attr.kind * int64) list;
 }
 
 let string_of_fd fd =
@@ -113,7 +167,7 @@ let string_of_fd fd =
     | n -> Buffer.add_subbytes buf bytes 0 n; drain ()
   in drain ()
 
-let with_process ~attrs ~cmd =
+let with_process ?env cmd attrs =
   let attrs = List.map Attr.(fun a ->
       { flags = [Disabled; Inherit; Enable_on_exec] @ a.flags;
         kind = a.kind
@@ -126,14 +180,22 @@ let with_process ~attrs ~cmd =
       (* child *)
       Unix.(dup2 chd_stdout_write stdout; close chd_stdout_write);
       Unix.(dup2 chd_stderr_write stderr; close chd_stderr_write);
-      Unix.execvp (List.hd cmd) (Array.of_list cmd)
+      (match env with
+      | None -> Unix.execvp (List.hd cmd) (Array.of_list cmd)
+      | Some env -> Unix.execvpe (List.hd cmd)
+                      (Array.of_list cmd) (Array.of_list env))
   | n ->
       (* parent *)
-      let _ = Unix.waitpid [] n in
+      let _, status = Unix.waitpid [] n in
       List.iter disable counters;
       Unix.(close chd_stdout_write; close chd_stderr_write);
-      {
-        measures = List.map (fun c -> c.kind, read c) counters;
-        stdout = string_of_fd chd_stdout_read;
-        stderr = string_of_fd chd_stderr_read;
-      }
+      match status with
+      | Unix.WSIGNALED _
+      | Unix.WSTOPPED _ -> failwith "Process has been killed"
+      | Unix.WEXITED return_value ->
+          {
+            return_value;
+            stdout = string_of_fd chd_stdout_read;
+            stderr = string_of_fd chd_stderr_read;
+            data = List.map (fun c -> c.kind, read c) counters;
+          }
