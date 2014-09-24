@@ -158,14 +158,19 @@ type execution = {
   data: (Attr.kind * int64) list;
 }
 
-let string_of_fd fd =
+let string_of_file filename =
   let buf = Buffer.create 10 in
   let bytes = Bytes.create 4096 in
-  let rec drain () =
-    match Unix.read fd bytes 0 4096 with
-    | 0 -> Buffer.contents buf
-    | n -> Buffer.add_subbytes buf bytes 0 n; drain ()
-  in drain ()
+  let ic = open_in filename in
+  try
+    let rec drain () =
+      match input ic bytes 0 4096 with
+      | 0 -> Buffer.contents buf
+      | n -> Buffer.add_subbytes buf bytes 0 n; drain ()
+    in
+    let res = drain () in close_in ic; res
+  with exn ->
+    close_in ic; raise exn
 
 let with_process ?env cmd attrs =
   let attrs = List.map Attr.(fun a ->
@@ -173,29 +178,37 @@ let with_process ?env cmd attrs =
         kind = a.kind
       }) attrs in
   let counters = List.map make attrs in
-  let chd_stdout_read, chd_stdout_write = Unix.pipe () in
-  let chd_stderr_read, chd_stderr_write = Unix.pipe () in
+  let tmp_stdout_name = Filename.temp_file "ocaml-perf" "stdout" in
+  let tmp_stderr_name = Filename.temp_file "ocaml-perf" "stderr" in
+  let tmp_stdout =
+    Unix.(openfile tmp_stdout_name [O_WRONLY; O_CREAT; O_TRUNC] 0o600) in
+  let tmp_stderr =
+    Unix.(openfile tmp_stderr_name [O_WRONLY; O_CREAT; O_TRUNC] 0o600) in
   match Unix.fork () with
   | 0 ->
       (* child *)
-      Unix.(dup2 chd_stdout_write stdout; close chd_stdout_write);
-      Unix.(dup2 chd_stderr_write stderr; close chd_stderr_write);
+      Unix.(dup2 tmp_stdout stdout; close tmp_stdout);
+      Unix.(dup2 tmp_stderr stderr; close tmp_stderr);
       (match env with
-      | None -> Unix.execvp (List.hd cmd) (Array.of_list cmd)
-      | Some env -> Unix.execvpe (List.hd cmd)
-                      (Array.of_list cmd) (Array.of_list env))
+         | None -> Unix.execvp (List.hd cmd) (Array.of_list cmd)
+         | Some env -> Unix.execvpe (List.hd cmd)
+                         (Array.of_list cmd) (Array.of_list env))
   | n ->
       (* parent *)
       let _, status = Unix.waitpid [] n in
       List.iter disable counters;
-      Unix.(close chd_stdout_write; close chd_stderr_write);
+      Unix.(close tmp_stdout; close tmp_stderr);
       match status with
       | Unix.WSIGNALED _
       | Unix.WSTOPPED _ -> failwith "Process has been killed"
       | Unix.WEXITED return_value ->
-          {
-            return_value;
-            stdout = string_of_fd chd_stdout_read;
-            stderr = string_of_fd chd_stderr_read;
-            data = List.map (fun c -> c.kind, read c) counters;
-          }
+          let res =
+            {
+              return_value;
+              stdout = string_of_file tmp_stdout_name;
+              stderr = string_of_file tmp_stderr_name;
+              data = List.map (fun c -> c.kind, read c) counters;
+            }
+          in
+          Unix.(unlink tmp_stdout_name; unlink tmp_stderr_name);
+          res
