@@ -158,19 +158,15 @@ type execution = {
   data: (Attr.kind * int64) list;
 }
 
+let string_of_ic ic = really_input_string ic @@ in_channel_length ic
+
 let string_of_file filename =
-  let buf = Buffer.create 10 in
-  let bytes = Bytes.create 4096 in
   let ic = open_in filename in
   try
-    let rec drain () =
-      match input ic bytes 0 4096 with
-      | 0 -> Buffer.contents buf
-      | n -> Buffer.add_subbytes buf bytes 0 n; drain ()
-    in
-    let res = drain () in close_in ic; res
+    let res = string_of_ic ic in close_in ic; res
   with exn ->
     close_in ic; raise exn
+
 
 let with_process_exn ?env ?timeout cmd attrs =
   let attrs = List.map Attr.(fun a ->
