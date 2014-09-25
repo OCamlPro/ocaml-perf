@@ -119,7 +119,7 @@ val disable : t -> unit
        count value. *)
 
 type execution = private {
-  return_value: int;
+  process_status: Unix.process_status;
   stdout: string;
   stderr: string;
   data: (Attr.kind * int64) list;
@@ -127,8 +127,7 @@ type execution = private {
 (** Type returned by [with_process] *)
 
 val with_process : ?env:string list -> ?timeout:int ->
-  string list -> Attr.t list ->
-  [`Ok of execution | `Timeout | `Killed | `Exn of exn]
+  string list -> Attr.t list -> [`Ok of execution | `Timeout | `Exn of exn]
 (** [with_process ?env ?timeout cmd attrs] is the result of the
     execution of the program described by [cmd]. This can either be a
     successful execution, or an error. *)

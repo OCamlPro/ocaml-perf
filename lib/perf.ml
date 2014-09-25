@@ -152,7 +152,7 @@ let enable c = perf_event_ioc_enable c.fd
 let disable c = perf_event_ioc_disable c.fd
 
 type execution = {
-  return_value: int;
+  process_status: Unix.process_status;
   stdout: string;
   stderr: string;
   data: (Attr.kind * int64) list;
@@ -196,27 +196,22 @@ let with_process_exn ?env ?timeout cmd attrs =
          EINTR, unblocking the program. *)
       let (_:int) = match timeout with None -> 0 | Some t -> Unix.alarm t in
       Sys.(set_signal sigalrm (Signal_handle (fun _ -> ())));
-      let _, status = Unix.waitpid [] n in
+      let _, process_status = Unix.waitpid [] n in
       List.iter disable counters;
       Unix.(close tmp_stdout; close tmp_stderr);
-      match status with
-      | Unix.WSIGNALED _
-      | Unix.WSTOPPED _ -> failwith "killed"
-      | Unix.WEXITED return_value ->
-          let res =
-            {
-              return_value;
-              stdout = string_of_file tmp_stdout_name;
-              stderr = string_of_file tmp_stderr_name;
-              data = List.map (fun c -> c.kind, read c) counters;
-            }
-          in
-          Unix.(unlink tmp_stdout_name; unlink tmp_stderr_name);
-          res
+      let res =
+        {
+          process_status;
+          stdout = string_of_file tmp_stdout_name;
+          stderr = string_of_file tmp_stderr_name;
+          data = List.map (fun c -> c.kind, read c) counters;
+        }
+      in
+      Unix.(unlink tmp_stdout_name; unlink tmp_stderr_name);
+      res
 
 let with_process ?env ?timeout cmd attrs =
   try `Ok (with_process_exn ?env ?timeout cmd attrs)
   with
-  | Failure "killed" -> `Killed
   | Unix.Unix_error (Unix.EINTR, _, _) -> `Timeout
   | exn -> `Exn exn
