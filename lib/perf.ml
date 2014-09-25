@@ -172,7 +172,7 @@ let string_of_file filename =
   with exn ->
     close_in ic; raise exn
 
-let with_process ?env cmd attrs =
+let with_process_exn ?env ?timeout cmd attrs =
   let attrs = List.map Attr.(fun a ->
       { flags = [Disabled; Inherit; Enable_on_exec] @ a.flags;
         kind = a.kind
@@ -195,12 +195,17 @@ let with_process ?env cmd attrs =
                          (Array.of_list cmd) (Array.of_list env))
   | n ->
       (* parent *)
+      (* Setup an alarm if timeout is specified. The alarm signal
+         handles do nothing, but this will make waitpid fail with
+         EINTR, unblocking the program. *)
+      let (_:int) = match timeout with None -> 0 | Some t -> Unix.alarm t in
+      Sys.(set_signal sigalrm (Signal_handle (fun _ -> ())));
       let _, status = Unix.waitpid [] n in
       List.iter disable counters;
       Unix.(close tmp_stdout; close tmp_stderr);
       match status with
       | Unix.WSIGNALED _
-      | Unix.WSTOPPED _ -> failwith "Process has been killed"
+      | Unix.WSTOPPED _ -> failwith "killed"
       | Unix.WEXITED return_value ->
           let res =
             {
@@ -212,3 +217,10 @@ let with_process ?env cmd attrs =
           in
           Unix.(unlink tmp_stdout_name; unlink tmp_stderr_name);
           res
+
+let with_process ?env ?timeout cmd attrs =
+  try `Ok (with_process_exn ?env ?timeout cmd attrs)
+  with
+  | Failure "killed" -> `Killed
+  | Unix.Unix_error (Unix.EINTR, _, _) -> `Timeout
+  | exn -> `Exn exn

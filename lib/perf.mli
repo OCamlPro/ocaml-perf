@@ -126,10 +126,12 @@ type execution = private {
 }
 (** Type returned by [with_process] *)
 
-val with_process : ?env:string list -> string list -> Attr.t list -> execution
-(** [with_process ?env cmd attrs] is a value of type execution
-    containing the results from the measurement of [attrs] on an
-    execution of the program described by [cmd]. *)
+val with_process : ?env:string list -> ?timeout:int ->
+  string list -> Attr.t list ->
+  [`Ok of execution | `Timeout | `Killed | `Exn of exn]
+(** [with_process ?env ?timeout cmd attrs] is the result of the
+    execution of the program described by [cmd]. This can either be a
+    successful execution, or an error. *)
 
 val enable_all : unit -> unit
 (** A process can enable or disable all the event groups that are
