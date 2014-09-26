@@ -168,14 +168,20 @@ let string_of_file filename =
     close_in ic; raise exn
 
 
-let with_process_exn ?env ?timeout cmd attrs =
+let with_process_exn ?env ?timeout ?stdout ?stderr cmd attrs =
   let attrs = List.map Attr.(fun a ->
       { flags = [Disabled; Inherit; Enable_on_exec] @ a.flags;
         kind = a.kind
       }) attrs in
   let counters = List.map make attrs in
-  let tmp_stdout_name = Filename.temp_file "ocaml-perf" "stdout" in
-  let tmp_stderr_name = Filename.temp_file "ocaml-perf" "stderr" in
+  let tmp_stdout_name = match stdout with
+    | None -> Filename.temp_file "ocaml-perf" "stdout"
+    | Some s -> s
+  in
+  let tmp_stderr_name = match stderr with
+    | None -> Filename.temp_file "ocaml-perf" "stderr"
+    | Some s -> s
+  in
   let tmp_stdout =
     Unix.(openfile tmp_stdout_name [O_WRONLY; O_CREAT; O_TRUNC] 0o600) in
   let tmp_stderr =
@@ -207,11 +213,17 @@ let with_process_exn ?env ?timeout cmd attrs =
           data = List.map (fun c -> c.kind, read c) counters;
         }
       in
-      Unix.(unlink tmp_stdout_name; unlink tmp_stderr_name);
+      (* Remove stdout/stderr files iff they were left unspecified. *)
+      (match stdout with
+       | None -> Unix.unlink tmp_stdout_name
+       | _ -> ());
+      (match stderr with
+       | None -> Unix.unlink tmp_stderr_name
+       | _ -> ());
       res
 
-let with_process ?env ?timeout cmd attrs =
-  try `Ok (with_process_exn ?env ?timeout cmd attrs)
+let with_process ?env ?timeout ?stdout ?stderr cmd attrs =
+  try `Ok (with_process_exn ?env ?timeout ?stdout ?stderr cmd attrs)
   with
   | Unix.Unix_error (Unix.EINTR, _, _) -> `Timeout
   | exn -> `Exn exn
