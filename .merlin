@@ -8,3 +8,4 @@ PKG ppx_deriving
 PKG oUnit
 PKG ocplib-endian
 PKG sexplib
+PKG oclock
