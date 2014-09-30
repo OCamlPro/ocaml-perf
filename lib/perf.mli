@@ -122,6 +122,7 @@ type execution = private {
   process_status: Unix.process_status;
   stdout: string;
   stderr: string;
+  duration: int64; (** In number of nanoseconds *)
   data: (Attr.kind * int64) list;
 }
 (** Type returned by [with_process] *)

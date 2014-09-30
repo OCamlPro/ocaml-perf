@@ -155,6 +155,7 @@ type execution = {
   process_status: Unix.process_status;
   stdout: string;
   stderr: string;
+  duration: int64;
   data: (Attr.kind * int64) list;
 }
 
@@ -186,6 +187,7 @@ let with_process_exn ?env ?timeout ?stdout ?stderr cmd attrs =
     Unix.(openfile tmp_stdout_name [O_WRONLY; O_CREAT; O_TRUNC] 0o600) in
   let tmp_stderr =
     Unix.(openfile tmp_stderr_name [O_WRONLY; O_CREAT; O_TRUNC] 0o600) in
+  let time_start = Oclock.(gettime monotonic) in
   match Unix.fork () with
   | 0 ->
       (* child *)
@@ -204,12 +206,14 @@ let with_process_exn ?env ?timeout ?stdout ?stderr cmd attrs =
       Sys.(set_signal sigalrm (Signal_handle (fun _ -> ())));
       let _, process_status = Unix.waitpid [] n in
       List.iter disable counters;
+      let time_end = Oclock.(gettime monotonic) in
       Unix.(close tmp_stdout; close tmp_stderr);
       let res =
         {
           process_status;
           stdout = string_of_file tmp_stdout_name;
           stderr = string_of_file tmp_stderr_name;
+          duration = Int64.(rem time_end time_start);
           data = List.map (fun c -> c.kind, read c) counters;
         }
       in
