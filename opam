@@ -11,5 +11,5 @@ build: [
   [ make "install" ]
 ]
 remove: [ "ocamlfind" "remove" "perf" ]
-depends: ["ocamlfind" {build} "ocplib-endian" "ppx_deriving" "sexplib"]
+depends: ["ocamlfind" {build} "ocplib-endian" "ppx_deriving" "sexplib" "oclock"]
 dev-repo: "git://github.com/vbmithr/ocaml-perf"
