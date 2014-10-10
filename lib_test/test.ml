@@ -24,15 +24,17 @@ let reset ctx =
 
 (* Test Perf.with_process *)
 let with_process ctx =
-  let r = Perf.with_process
-      ~attrs:[Perf.Attr.(make Cycles)] ~cmd:["sleep"; "0"] in
-  assert_equal "" r.stdout;
-  assert_equal "" r.stderr;
-  assert_equal 1 (List.length r.measures);
-  let m = List.hd r.measures in
+  let r = Perf.with_process ["sleep"; "0"] [Perf.Attr.(make Cycles)] in
+  let exec = match r with
+    | `Ok e -> e
+    | _ -> failwith "with_process"
+  in
+  assert_equal "" exec.stdout;
+  assert_equal "" exec.stderr;
+  assert_equal 1 (List.length exec.data);
+  let m = List.hd exec.data in
   assert_equal Perf.Attr.Cycles (fst m);
   assert_bool "cycles count <= 0" (snd m > 0L)
-  (* assert_bool "cycles count > 2M" (snd m < 2000000L) *)
 
 let suite =
   "suite" >:::
