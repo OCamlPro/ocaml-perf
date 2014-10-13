@@ -7,7 +7,7 @@ let rec fact acc = function
 
 (* Test that counting cycles returns a positive int64 *)
 let count_cycles ctx =
-  let c = Perf.(make Attr.(make Cycles)) in
+  let c = Perf.(make Attr.(make Kind.Cycles)) in
   Perf.enable c;
   let _ = fact 200 in
   Perf.disable c;
@@ -15,7 +15,7 @@ let count_cycles ctx =
 
 (* Test Perf.reset *)
 let reset ctx =
-  let c = Perf.(make Attr.(make Cycles)) in
+  let c = Perf.(make Attr.(make Kind.Cycles)) in
   Perf.enable c;
   let _ = fact 2 in
   Perf.disable c;
@@ -24,16 +24,16 @@ let reset ctx =
 
 (* Test Perf.with_process *)
 let with_process ctx =
-  let r = Perf.with_process ["sleep"; "0"] [Perf.Attr.(make Cycles)] in
+  let r = Perf.with_process ["sleep"; "0"] [Perf.Attr.(make Kind.Cycles)] in
   let exec = match r with
     | `Ok e -> e
     | _ -> failwith "with_process"
   in
   assert_equal "" exec.stdout;
   assert_equal "" exec.stderr;
-  assert_equal 1 (List.length exec.data);
-  let m = List.hd exec.data in
-  assert_equal Perf.Attr.Cycles (fst m);
+  assert_equal 1 (KindMap.cardinal exec.data);
+  let m = KindMap.min_binding exec.data in
+  assert_equal Perf.Attr.Kind.Cycles (fst m);
   assert_bool "cycles count <= 0" (snd m > 0L)
 
 let suite =

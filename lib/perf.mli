@@ -8,44 +8,49 @@ module Attr : sig
     | Exclude_idle (** don't count when idle *)
     | Enable_on_exec (** next exec enables *)
 
-  type kind =
-    (** Hardware *)
-    | Cycles
-    | Instructions
-    | Cache_references
-    | Cache_misses
-    | Branch_instructions
-    | Branch_misses
-    | Bus_cycles
-    | Stalled_cycles_frontend
-    | Stalled_cycles_backend
-    | Ref_cpu_cycles
+  module Kind : sig
+    type t =
+      (** Hardware *)
+      | Cycles
+      | Instructions
+      | Cache_references
+      | Cache_misses
+      | Branch_instructions
+      | Branch_misses
+      | Bus_cycles
+      | Stalled_cycles_frontend
+      | Stalled_cycles_backend
+      | Ref_cpu_cycles
 
-    (** Software *)
-    | Cpu_clock
-    | Task_clock
-    | Page_faults
-    | Context_switches
-    | Cpu_migrations
-    | Page_faults_min
-    | Page_faults_maj
-    | Alignment_faults
-    | Emulation_faults
-    | Dummy
+      (** Software *)
+      | Cpu_clock
+      | Task_clock
+      | Page_faults
+      | Context_switches
+      | Cpu_migrations
+      | Page_faults_min
+      | Page_faults_maj
+      | Alignment_faults
+      | Emulation_faults
+      | Dummy
 
-  val sexp_of_kind : kind -> Sexplib.Sexp.t
-  val kind_of_sexp : Sexplib.Sexp.t -> kind
+    val of_enum : int -> t option
+    val to_enum : t -> int
+
+    val sexp_of_t : t -> Sexplib.Sexp.t
+    val t_of_sexp : Sexplib.Sexp.t -> t
+  end
 
   type t
   (** Opaque type of a perf event attribute. *)
 
-  val make : ?flags:flag list -> kind -> t
+  val make : ?flags:flag list -> Kind.t -> t
   (** [make ?flags kind] is a perf event attribute of type [kind],
       with flags [flags]. *)
 
-  val kind_of_enum : int -> kind option
-  val kind_to_enum : kind -> int
 end
+
+module KindMap : Map.S with type key = Attr.Kind.t
 
 type flag =
   | Fd_cloexec (** (since Linux 3.14). This flag enables
@@ -101,7 +106,7 @@ val make : ?pid:int -> ?cpu:int -> ?group:t -> ?flags:flag list -> Attr.t -> t
     to simultanously count different metrics (like the perf stat tool
     does), you have to setup several counters. *)
 
-val kind : t -> Attr.kind
+val kind : t -> Attr.Kind.t
 (** [kind c] is the kind of events that this counter counts. *)
 
 val read : t -> int64
@@ -122,8 +127,8 @@ type execution = private {
   process_status: Unix.process_status;
   stdout: string;
   stderr: string;
-  duration: int64; (** In number of nanoseconds *)
-  data: (Attr.kind * int64) list;
+  duration: Int64.t; (** In number of nanoseconds *)
+  data: Int64.t KindMap.t
 }
 (** Type returned by [with_process] *)
 

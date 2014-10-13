@@ -9,95 +9,103 @@ module Attr = struct
     | Enable_on_exec [@value 64] (** next exec enables *)
         [@@deriving Enum]
 
-  type kind =
-    (** Hardware *)
-    | Cycles
-    | Instructions
-    | Cache_references
-    | Cache_misses
-    | Branch_instructions
-    | Branch_misses
-    | Bus_cycles
-    | Stalled_cycles_frontend
-    | Stalled_cycles_backend
-    | Ref_cpu_cycles
+  module Kind = struct
+    type t =
+      (** Hardware *)
+      | Cycles
+      | Instructions
+      | Cache_references
+      | Cache_misses
+      | Branch_instructions
+      | Branch_misses
+      | Bus_cycles
+      | Stalled_cycles_frontend
+      | Stalled_cycles_backend
+      | Ref_cpu_cycles
 
-    (** Software *)
-    | Cpu_clock
-    | Task_clock
-    | Page_faults
-    | Context_switches
-    | Cpu_migrations
-    | Page_faults_min
-    | Page_faults_maj
-    | Alignment_faults
-    | Emulation_faults
-    | Dummy
-        [@@deriving Enum]
+      (** Software *)
+      | Cpu_clock
+      | Task_clock
+      | Page_faults
+      | Context_switches
+      | Cpu_migrations
+      | Page_faults_min
+      | Page_faults_maj
+      | Alignment_faults
+      | Emulation_faults
+      | Dummy
+          [@@deriving Enum]
 
-  let sexp_of_kind k =
-    let open Sexplib.Sexp in
-    match k with
-    | Cycles -> Atom "Cycles"
-    | Instructions -> Atom "Instructions"
-    | Cache_references -> Atom "Cache_references"
-    | Cache_misses -> Atom "Cache_misses"
-    | Branch_instructions -> Atom "Branch_instructions"
-    | Branch_misses -> Atom "Branch_misses"
-    | Bus_cycles -> Atom "Bus_cycles"
-    | Stalled_cycles_frontend -> Atom "Stalled_cycles_frontend"
-    | Stalled_cycles_backend -> Atom "Stalled_cycles_backend"
-    | Ref_cpu_cycles -> Atom "Ref_cpu_cycles"
+    let sexp_of_t k =
+      let open Sexplib.Sexp in
+      match k with
+      | Cycles -> Atom "Cycles"
+      | Instructions -> Atom "Instructions"
+      | Cache_references -> Atom "Cache_references"
+      | Cache_misses -> Atom "Cache_misses"
+      | Branch_instructions -> Atom "Branch_instructions"
+      | Branch_misses -> Atom "Branch_misses"
+      | Bus_cycles -> Atom "Bus_cycles"
+      | Stalled_cycles_frontend -> Atom "Stalled_cycles_frontend"
+      | Stalled_cycles_backend -> Atom "Stalled_cycles_backend"
+      | Ref_cpu_cycles -> Atom "Ref_cpu_cycles"
 
-    (** Software *)
-    | Cpu_clock -> Atom "Cpu_clock"
-    | Task_clock -> Atom "Task_clock"
-    | Page_faults -> Atom "Page_faults"
-    | Context_switches -> Atom "Context_switches"
-    | Cpu_migrations -> Atom "Cpu_migrations"
-    | Page_faults_min -> Atom "Page_faults_min"
-    | Page_faults_maj -> Atom "Page_faults_maj"
-    | Alignment_faults -> Atom "Alignment_faults"
-    | Emulation_faults -> Atom "Emulation_faults"
-    | Dummy -> Atom "Dummy"
+      (** Software *)
+      | Cpu_clock -> Atom "Cpu_clock"
+      | Task_clock -> Atom "Task_clock"
+      | Page_faults -> Atom "Page_faults"
+      | Context_switches -> Atom "Context_switches"
+      | Cpu_migrations -> Atom "Cpu_migrations"
+      | Page_faults_min -> Atom "Page_faults_min"
+      | Page_faults_maj -> Atom "Page_faults_maj"
+      | Alignment_faults -> Atom "Alignment_faults"
+      | Emulation_faults -> Atom "Emulation_faults"
+      | Dummy -> Atom "Dummy"
 
-  let kind_of_sexp s =
-    let open Sexplib.Sexp in
-    match s with
-    | Atom "Cycles" -> Cycles
-    | Atom "Instructions" -> Instructions
-    | Atom "Cache_references" -> Cache_references
-    | Atom "Cache_misses" -> Cache_misses
-    | Atom "Branch_instructions" -> Branch_instructions
-    | Atom "Branch_misses" -> Branch_misses
-    | Atom "Bus_cycles" -> Bus_cycles
-    | Atom "Stalled_cycles_frontend" -> Stalled_cycles_frontend
-    | Atom "Stalled_cycles_backend" -> Stalled_cycles_backend
-    | Atom "Ref_cpu_cycles" -> Ref_cpu_cycles
+    let t_of_sexp s =
+      let open Sexplib.Sexp in
+      match s with
+      | Atom "Cycles" -> Cycles
+      | Atom "Instructions" -> Instructions
+      | Atom "Cache_references" -> Cache_references
+      | Atom "Cache_misses" -> Cache_misses
+      | Atom "Branch_instructions" -> Branch_instructions
+      | Atom "Branch_misses" -> Branch_misses
+      | Atom "Bus_cycles" -> Bus_cycles
+      | Atom "Stalled_cycles_frontend" -> Stalled_cycles_frontend
+      | Atom "Stalled_cycles_backend" -> Stalled_cycles_backend
+      | Atom "Ref_cpu_cycles" -> Ref_cpu_cycles
 
-    (** Software *)
-    | Atom "Cpu_clock" -> Cpu_clock
-    | Atom "Task_clock" -> Task_clock
-    | Atom "Page_faults" -> Page_faults
-    | Atom "Context_switches" -> Context_switches
-    | Atom "Cpu_migrations" -> Cpu_migrations
-    | Atom "Page_faults_min" -> Page_faults_min
-    | Atom "Page_faults_maj" -> Page_faults_maj
-    | Atom "Alignment_faults" -> Alignment_faults
-    | Atom "Emulation_faults" -> Emulation_faults
-    | Atom "Dummy" -> Dummy
-    | _ -> invalid_arg "kind_of_sexp"
+      (** Software *)
+      | Atom "Cpu_clock" -> Cpu_clock
+      | Atom "Task_clock" -> Task_clock
+      | Atom "Page_faults" -> Page_faults
+      | Atom "Context_switches" -> Context_switches
+      | Atom "Cpu_migrations" -> Cpu_migrations
+      | Atom "Page_faults_min" -> Page_faults_min
+      | Atom "Page_faults_maj" -> Page_faults_maj
+      | Atom "Alignment_faults" -> Alignment_faults
+      | Atom "Emulation_faults" -> Emulation_faults
+      | Atom "Dummy" -> Dummy
+      | _ -> invalid_arg "kind_of_sexp"
+
+    let compare = compare
+  end
 
   type t = {
     flags: flag list;
-    kind: kind
+    kind: Kind.t
   }
   (** Opaque type of a perf event attribute. *)
 
   let make ?(flags=[]) kind = { flags; kind; }
   (** [make ?flags kind] is a perf event attribute of type [kind],
       with flags [flags]. *)
+
+  let compare t1 t2 = compare t1.kind t2.kind
 end
+
+module KindMap = Map.Make(Attr.Kind)
 
 type flag =
   | Fd_cloexec [@value 1]
@@ -108,7 +116,7 @@ type flag =
 
 type t = {
   fd: Unix.file_descr;
-  kind: Attr.kind;
+  kind: Attr.Kind.t;
 }
 
 external perf_event_open : int -> int -> int -> int -> int ->
@@ -134,7 +142,7 @@ let make ?(pid = 0) ?(cpu = -1) ?group ?(flags = []) attr =
   let group = match group with
     | None -> -1
     | Some { fd; _ } -> (Obj.magic fd : int) in
-  let kind_enum = Attr.(kind_to_enum attr.kind) in
+  let kind_enum = Attr.(Kind.(to_enum attr.kind)) in
   Attr.{ fd = perf_event_open kind_enum attr_flags pid cpu group flags;
          kind = attr.kind;
        }
@@ -156,7 +164,7 @@ type execution = {
   stdout: string;
   stderr: string;
   duration: int64;
-  data: (Attr.kind * int64) list;
+  data: Int64.t KindMap.t;
 }
 
 let string_of_ic ic = really_input_string ic @@ in_channel_length ic
@@ -216,7 +224,9 @@ let with_process_exn ?env ?timeout ?stdout ?stderr cmd attrs =
           stdout = string_of_file tmp_stdout_name;
           stderr = string_of_file tmp_stderr_name;
           duration = Int64.(rem time_end time_start);
-          data = List.map (fun c -> c.kind, read c) counters;
+          data = List.fold_left
+              (fun a c -> KindMap.add c.kind (read c) a)
+              KindMap.empty counters;
         }
       in
       (* Remove stdout/stderr files iff they were left unspecified. *)
