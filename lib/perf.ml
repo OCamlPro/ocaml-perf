@@ -9,6 +9,8 @@ module Attr = struct
     | Enable_on_exec [@value 64] (** next exec enables *)
         [@@deriving Enum]
 
+  module FSet = Set.Make(struct type t = flag let compare = compare end)
+
   module Kind = struct
     type t =
       (** Hardware *)
@@ -89,16 +91,21 @@ module Attr = struct
       | Atom "Dummy" -> Dummy
       | _ -> invalid_arg "kind_of_sexp"
 
+    let to_string t =
+      sexp_of_t t |> Sexplib.Sexp.to_string
+
+    let of_string s =
+      Sexplib.Sexp.of_string s |> t_of_sexp
+
     let compare = compare
   end
 
   type t = {
-    flags: flag list;
+    flags: FSet.t;
     kind: Kind.t
   }
-  (** Opaque type of a perf event attribute. *)
 
-  let make ?(flags=[]) kind = { flags; kind; }
+  let make ?(flags=[]) kind = { flags=FSet.of_list flags; kind; }
   (** [make ?flags kind] is a perf event attribute of type [kind],
       with flags [flags]. *)
 
@@ -128,16 +135,16 @@ external perf_event_ioc_reset : Unix.file_descr -> unit = "perf_event_ioc_reset"
 external enable_all : unit -> unit = "perf_events_enable_all"
 external disable_all : unit -> unit = "perf_events_disable_all"
 
-module FlagSet = Set.Make(struct type t = flag let compare = compare end)
-module AttrFlagSet = Set.Make(struct type t = Attr.flag let compare = compare end)
+module FSet = Set.Make(struct type t = flag let compare = compare end)
 
 let make ?(pid = 0) ?(cpu = -1) ?group ?(flags = []) attr =
-  let flags = FlagSet.(of_list flags |> elements) in
-  let flags = List.fold_left (fun acc f -> acc + flag_to_enum f) 0 flags in
+  let flags = FSet.of_list flags in
+  let flags = FSet.fold (fun f acc -> acc + flag_to_enum f) flags 0 in
 
-  let attr_flags = AttrFlagSet.(of_list attr.Attr.flags |> elements) in
-  let attr_flags = List.fold_left
-      Attr.(fun acc f -> acc + Attr.(flag_to_enum f)) 0 attr_flags in
+  let attr_flags =
+    let open Attr in
+    FSet.fold
+      (fun f acc -> acc + Attr.(flag_to_enum f)) attr.flags 0 in
 
   let group = match group with
     | None -> -1
@@ -176,10 +183,10 @@ let string_of_file filename =
   with exn ->
     close_in ic; raise exn
 
-
 let with_process_exn ?env ?timeout ?stdout ?stderr cmd attrs =
   let attrs = List.map Attr.(fun a ->
-      { flags = [Disabled; Inherit; Enable_on_exec] @ a.flags;
+      { flags = List.fold_left (fun a f -> Attr.FSet.add f a)
+            a.flags [Disabled; Inherit; Enable_on_exec];
         kind = a.kind
       }) attrs in
   let counters = List.map make attrs in
