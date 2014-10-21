@@ -15,6 +15,14 @@ Library perf
   BuildDepends: oclock, ocplib-endian, ppx_deriving, sexplib
   CompiledObject: best
 
+Executable operf
+  Path: src
+  MainIs: operf.ml
+  Install: true
+  BuildDepends: perf
+  Install: false
+  CompiledObject: best
+
 Executable test
   Path: lib_test
   MainIs: test.ml

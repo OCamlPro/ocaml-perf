@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 7e97c4c05e99aee48065f84d569b5d93)
+# DO NOT EDIT (digest: 1fa3f0d3df581886c4b29c71071199d8)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -24,6 +24,17 @@
 "lib/perf_stubs.c": pkg_ocplib-endian
 "lib/perf_stubs.c": pkg_ppx_deriving
 "lib/perf_stubs.c": pkg_sexplib
+# Executable operf
+<src/operf.{native,byte}>: pkg_oclock
+<src/operf.{native,byte}>: pkg_ocplib-endian
+<src/operf.{native,byte}>: pkg_ppx_deriving
+<src/operf.{native,byte}>: pkg_sexplib
+<src/operf.{native,byte}>: use_perf
+<src/*.ml{,i}>: pkg_oclock
+<src/*.ml{,i}>: pkg_ocplib-endian
+<src/*.ml{,i}>: pkg_ppx_deriving
+<src/*.ml{,i}>: pkg_sexplib
+<src/*.ml{,i}>: use_perf
 # Executable test
 <lib_test/test.{native,byte}>: pkg_oUnit
 <lib_test/test.{native,byte}>: pkg_oclock
