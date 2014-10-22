@@ -127,13 +127,13 @@ CAMLprim value stub_perf_event_open (value kind, value attr_flags,
     case 19: attr.config = PERF_COUNT_SW_DUMMY; break;
     }
 
-  if(Int_val(attr_flags & 1)) attr.disabled = 1;
-  if(Int_val(attr_flags & 2)) attr.inherit = 1;
-  if(Int_val(attr_flags & 4)) attr.exclude_user = 1;
-  if(Int_val(attr_flags & 8)) attr.exclude_kernel = 1;
-  if(Int_val(attr_flags & 16)) attr.exclude_hv = 1;
-  if(Int_val(attr_flags & 32)) attr.exclude_idle = 1;
-  if(Int_val(attr_flags & 64)) attr.enable_on_exec = 1;
+  if(Int_val(attr_flags) & 1) attr.disabled = 1;
+  if(Int_val(attr_flags) & 2) attr.inherit = 1;
+  if(Int_val(attr_flags) & 4) attr.exclude_user = 1;
+  if(Int_val(attr_flags) & 8) attr.exclude_kernel = 1;
+  if(Int_val(attr_flags) & 16) attr.exclude_hv = 1;
+  if(Int_val(attr_flags) & 32) attr.exclude_idle = 1;
+  if(Int_val(attr_flags) & 64) attr.enable_on_exec = 1;
 
   ret = perf_event_open(&attr, Int_val(pid), Int_val(cpu), Int_val(group_fd), c_flags);
 
