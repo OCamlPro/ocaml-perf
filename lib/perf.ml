@@ -92,10 +92,10 @@ module Attr = struct
       | _ -> invalid_arg "kind_of_sexp"
 
     let to_string t =
-      sexp_of_t t |> Sexplib.Sexp.to_string
+      sexp_of_t t |> Sexplib.Sexp.to_string |> String.uncapitalize
 
     let of_string s =
-      Sexplib.Sexp.of_string s |> t_of_sexp
+      String.capitalize s |> Sexplib.Sexp.of_string |> t_of_sexp
 
     let compare = compare
   end
