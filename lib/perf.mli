@@ -126,6 +126,9 @@ val disable : t -> unit
        generate overflows but does continue to exist and maintain its
        count value. *)
 
+val close : t -> unit
+(** Free resources associated with a counter. *)
+
 type execution = private {
   process_status: Unix.process_status;
   stdout: string;

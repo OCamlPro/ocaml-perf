@@ -165,6 +165,7 @@ let read c =
 let reset c = perf_event_ioc_reset c.fd
 let enable c = perf_event_ioc_enable c.fd
 let disable c = perf_event_ioc_disable c.fd
+let close c = Unix.close c.fd
 
 type execution = {
   process_status: Unix.process_status;
@@ -236,6 +237,7 @@ let with_process_exn ?env ?timeout ?stdout ?stderr cmd attrs =
               KindMap.empty counters;
         }
       in
+      List.iter close counters;
       (* Remove stdout/stderr files iff they were left unspecified. *)
       (match stdout with
        | None -> Unix.unlink tmp_stdout_name
