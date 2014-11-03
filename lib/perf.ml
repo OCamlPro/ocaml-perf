@@ -7,7 +7,7 @@ module Attr = struct
     | Exclude_hv [@value 16] (** don't count hypervisor *)
     | Exclude_idle [@value 32] (** don't count when idle *)
     | Enable_on_exec [@value 64] (** next exec enables *)
-        [@@deriving Enum]
+        [@@deriving enum]
 
   module FSet = Set.Make(struct type t = flag let compare = compare end)
 
@@ -36,7 +36,7 @@ module Attr = struct
       | Alignment_faults
       | Emulation_faults
       | Dummy
-          [@@deriving Enum]
+          [@@deriving enum]
 
     let sexp_of_t k =
       let open Sexplib.Sexp in
@@ -119,7 +119,7 @@ type flag =
   | Fd_no_group [@value 2]
   | Fd_output [@value 4]
   | Pid_cgroup [@value 8]
-      [@@deriving Enum]
+      [@@deriving enum]
 
 type t = {
   fd: Unix.file_descr;

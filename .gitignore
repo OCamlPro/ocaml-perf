@@ -1,6 +1,10 @@
 *.byte
 *.native
-setup.data
-setup.exe
-setup.log
+setup.*
 _build
+_tags
+configure
+**/*.mldylib
+**/*.mllib
+**/*.clib
+myocamlbuild.ml
