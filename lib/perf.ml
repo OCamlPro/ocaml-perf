@@ -207,14 +207,15 @@ let with_process_exn ?env ?timeout ?stdout ?stderr cmd attrs =
   match Unix.fork () with
   | 0 ->
       (* child *)
-      (try
-        Unix.(dup2 tmp_stdout stdout; close tmp_stdout);
-        Unix.(dup2 tmp_stderr stderr; close tmp_stderr);
-        (match env with
-         | None -> Unix.execvp (List.hd cmd) (Array.of_list cmd)
-         | Some env -> Unix.execvpe (List.hd cmd)
-                         (Array.of_list cmd) (Array.of_list env))
-      with _ -> exit 1)
+    Unix.(handle_unix_error
+      (fun () ->
+         dup2 tmp_stdout stdout; close tmp_stdout;
+         dup2 tmp_stderr stderr; close tmp_stderr;
+         (match env with
+          | None -> execvp (List.hd cmd) (Array.of_list cmd)
+          | Some env -> execvpe (List.hd cmd)
+                          (Array.of_list cmd) (Array.of_list env))
+      ) ())
   | n ->
       (* parent *)
       (* Setup an alarm if timeout is specified. The alarm signal

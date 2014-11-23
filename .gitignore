@@ -8,3 +8,6 @@ configure
 **/*.mllib
 **/*.clib
 myocamlbuild.ml
+**/META
+_obuild
+*.ocp
