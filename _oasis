@@ -12,7 +12,7 @@ Library perf
   Path: lib
   Modules: Perf
   CSources: perf_stubs.c
-  BuildDepends: oclock, ocplib-endian, ppx_deriving.std, sexplib
+  BuildDepends: oclock, ocplib-endian, sexplib
   CompiledObject: best
 
 Executable operf

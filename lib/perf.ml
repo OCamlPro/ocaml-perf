@@ -1,13 +1,21 @@
 module Attr = struct
   type flag =
-    | Disabled [@value 1] (** off by default *)
-    | Inherit [@value 2] (** children inherit it *)
-    | Exclude_user [@value 4] (** don't count user *)
-    | Exclude_kernel [@value 8] (** don't count kernel *)
-    | Exclude_hv [@value 16] (** don't count hypervisor *)
-    | Exclude_idle [@value 32] (** don't count when idle *)
-    | Enable_on_exec [@value 64] (** next exec enables *)
-        [@@deriving enum]
+    | Disabled (** off by default *)
+    | Inherit (** children inherit it *)
+    | Exclude_user (** don't count user *)
+    | Exclude_kernel (** don't count kernel *)
+    | Exclude_hv (** don't count hypervisor *)
+    | Exclude_idle (** don't count when idle *)
+    | Enable_on_exec (** next exec enables *)
+
+  let flag_to_enum = function
+    | Disabled -> 1
+    | Inherit -> 2
+    | Exclude_user -> 4
+    | Exclude_kernel -> 8
+    | Exclude_hv -> 16
+    | Exclude_idle -> 32
+    | Enable_on_exec -> 64
 
   module FSet = Set.Make(struct type t = flag let compare = compare end)
 
@@ -36,7 +44,29 @@ module Attr = struct
       | Alignment_faults
       | Emulation_faults
       | Dummy
-          [@@deriving enum]
+
+    let to_enum = function
+      | Cycles -> 0
+      | Instructions -> 1
+      | Cache_references -> 2
+      | Cache_misses -> 3
+      | Branch_instructions -> 4
+      | Branch_misses -> 5
+      | Bus_cycles -> 6
+      | Stalled_cycles_frontend -> 7
+      | Stalled_cycles_backend -> 8
+      | Ref_cpu_cycles -> 9
+      | Cpu_clock -> 10
+      | Task_clock -> 11
+      | Page_faults -> 12
+      | Context_switches -> 13
+      | Cpu_migrations -> 14
+      | Page_faults_min -> 15
+      | Page_faults_maj -> 16
+      | Alignment_faults -> 17
+      | Emulation_faults -> 18
+      | Dummy -> 19
+
 
     let sexp_of_t k =
       let open Sexplib.Sexp in
@@ -115,19 +145,30 @@ end
 module KindMap = Map.Make(Attr.Kind)
 
 type flag =
-  | Fd_cloexec [@value 1]
-  | Fd_no_group [@value 2]
-  | Fd_output [@value 4]
-  | Pid_cgroup [@value 8]
-      [@@deriving enum]
+  | Fd_cloexec
+  | Fd_no_group
+  | Fd_output
+  | Pid_cgroup
+
+let flag_to_enum = function
+  | Fd_cloexec -> 1
+  | Fd_no_group -> 2
+  | Fd_output -> 4
+  | Pid_cgroup -> 8
 
 type t = {
   fd: Unix.file_descr;
   kind: Attr.Kind.t;
 }
 
-external perf_event_open : int -> int -> int -> int -> int ->
-  int -> Unix.file_descr = "stub_perf_event_open_byte" "stub_perf_event_open"
+external perf_event_open :
+  kind:int ->
+  attr_flags:int ->
+  pid:int ->
+  cpu:int ->
+  group_fd:int ->
+  flags:int ->
+  Unix.file_descr = "stub_perf_event_open_byte" "stub_perf_event_open"
 external perf_event_ioc_enable : Unix.file_descr -> unit = "perf_event_ioc_enable"
 external perf_event_ioc_disable : Unix.file_descr -> unit = "perf_event_ioc_disable"
 external perf_event_ioc_reset : Unix.file_descr -> unit = "perf_event_ioc_reset"
@@ -150,7 +191,8 @@ let make ?(pid = 0) ?(cpu = -1) ?group ?(flags = []) attr =
     | None -> -1
     | Some { fd; _ } -> (Obj.magic fd : int) in
   let kind_enum = Attr.(Kind.(to_enum attr.kind)) in
-  Attr.{ fd = perf_event_open kind_enum attr_flags pid cpu group flags;
+  Attr.{ fd = perf_event_open ~kind:kind_enum ~attr_flags ~pid ~cpu
+             ~group_fd:group ~flags;
          kind = attr.kind;
        }
 

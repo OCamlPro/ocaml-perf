@@ -34,9 +34,6 @@ module Attr : sig
       | Emulation_faults
       | Dummy
 
-    val of_enum : int -> t option
-    val to_enum : t -> int
-
     val sexp_of_t : t -> Sexplib.Sexp.t
     val t_of_sexp : Sexplib.Sexp.t -> t
 
