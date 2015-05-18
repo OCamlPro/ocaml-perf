@@ -94,8 +94,9 @@ CAMLprim value stub_perf_event_open (value kind, value attr_flags,
   struct perf_event_attr attr;
   memset(&attr, 0, sizeof(struct perf_event_attr));
   attr.size = sizeof(struct perf_event_attr);
-
+#ifdef PERF_FLAG_FD_CLOEXEC
   if (Int_val(flags) & 1) c_flags += PERF_FLAG_FD_CLOEXEC;
+#endif
   if (Int_val(flags) & 2) c_flags += PERF_FLAG_FD_NO_GROUP;
   if (Int_val(flags) & 4) c_flags += PERF_FLAG_FD_OUTPUT;
   if (Int_val(flags) & 8) c_flags += PERF_FLAG_PID_CGROUP;
