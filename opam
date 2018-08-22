@@ -9,8 +9,8 @@ license: "GPLv2"
 build: [
   [ "oasis" "setup" ]
   [ make ]
-  [ make "install" ]
 ]
+install: [ make "install" ]
 remove: [ "ocamlfind" "remove" "perf" ]
 depends: ["ocamlfind" {build} "oasis" "ocplib-endian" "sexplib" "oclock"]
 dev-repo: "git://github.com/OCamlPro/ocaml-perf"
