@@ -7,10 +7,8 @@ homepage: "http://github.com/OCamlPro/ocaml-perf"
 bug-reports: "http://github.com/OCamlPro/ocaml-perf/issues"
 license: "GPLv2"
 build: [
-  [ "oasis" "setup" ]
-  [ make ]
+  [ "dune" "subst" ] {pinned}
+  [ "dune" "build" "-p" name "-j" jobs ]
 ]
-install: [ make "install" ]
-remove: [ "ocamlfind" "remove" "perf" ]
-depends: ["ocamlfind" {build} "oasis" "ocplib-endian" "sexplib" "oclock"]
+depends: ["dune" {build} "ocplib-endian" "sexplib" "oclock"]
 dev-repo: "git://github.com/OCamlPro/ocaml-perf"

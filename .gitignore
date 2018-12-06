@@ -11,3 +11,4 @@ myocamlbuild.ml
 **/META
 _obuild
 *.ocp
+.merlin
