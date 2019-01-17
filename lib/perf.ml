@@ -21,7 +21,7 @@ module Attr = struct
 
   module Kind = struct
     type t =
-      (** Hardware *)
+      (* Hardware *)
       | Cycles
       | Instructions
       | Cache_references
@@ -33,7 +33,7 @@ module Attr = struct
       | Stalled_cycles_backend
       | Ref_cpu_cycles
 
-      (** Software *)
+      (* Software *)
       | Cpu_clock
       | Task_clock
       | Page_faults
@@ -82,7 +82,7 @@ module Attr = struct
       | Stalled_cycles_backend -> Atom "Stalled_cycles_backend"
       | Ref_cpu_cycles -> Atom "Ref_cpu_cycles"
 
-      (** Software *)
+      (* Software *)
       | Cpu_clock -> Atom "Cpu_clock"
       | Task_clock -> Atom "Task_clock"
       | Page_faults -> Atom "Page_faults"
@@ -108,7 +108,7 @@ module Attr = struct
       | Atom "Stalled_cycles_backend" -> Stalled_cycles_backend
       | Atom "Ref_cpu_cycles" -> Ref_cpu_cycles
 
-      (** Software *)
+      (* Software *)
       | Atom "Cpu_clock" -> Cpu_clock
       | Atom "Task_clock" -> Task_clock
       | Atom "Page_faults" -> Page_faults
@@ -122,10 +122,10 @@ module Attr = struct
       | _ -> invalid_arg "kind_of_sexp"
 
     let to_string t =
-      sexp_of_t t |> Sexplib.Sexp.to_string |> String.uncapitalize
+      sexp_of_t t |> Sexplib.Sexp.to_string |> String.uncapitalize_ascii
 
     let of_string s =
-      String.capitalize s |> Sexplib.Sexp.of_string |> t_of_sexp
+      String.capitalize_ascii s |> Sexplib.Sexp.of_string |> t_of_sexp
 
     let compare = compare
   end

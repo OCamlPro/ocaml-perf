@@ -1,0 +1,5 @@
+(executable
+ (name operf)
+ (package perf)
+ (public_name operf)
+ (libraries perf))

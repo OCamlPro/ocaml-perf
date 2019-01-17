@@ -48,6 +48,8 @@ module Attr : sig
   (** [make ?flags kind] is a perf event attribute of type [kind],
       with flags [flags]. *)
 
+  val compare : t -> t -> int
+  (** comparison function on {!t}. *)
 end
 
 module KindMap : Map.S with type key = Attr.Kind.t
