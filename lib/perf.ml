@@ -138,6 +138,8 @@ module Attr = struct
   let make ?(flags=[]) kind = { flags=FSet.of_list flags; kind; }
   (** [make ?flags kind] is a perf event attribute of type [kind],
       with flags [flags]. *)
+
+  let compare t1 t2 = compare t1.kind t2.kind
 end
 
 module KindMap = Map.Make(Attr.Kind)

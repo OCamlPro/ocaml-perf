@@ -10,6 +10,7 @@ module Attr : sig
 
   module Kind : sig
     type t =
+      (** Hardware *)
       | Cycles
       | Instructions
       | Cache_references
@@ -20,6 +21,8 @@ module Attr : sig
       | Stalled_cycles_frontend
       | Stalled_cycles_backend
       | Ref_cpu_cycles
+
+      (** Software *)
       | Cpu_clock
       | Task_clock
       | Page_faults
@@ -45,6 +48,8 @@ module Attr : sig
   (** [make ?flags kind] is a perf event attribute of type [kind],
       with flags [flags]. *)
 
+  val compare : t -> t -> int
+  (** comparison function on {!t}. *)
 end
 
 module KindMap : Map.S with type key = Attr.Kind.t
