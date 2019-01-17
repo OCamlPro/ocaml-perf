@@ -2,4 +2,5 @@
  (name perf)
  (public_name perf)
  (c_names perf_stubs)
+ (flags (:standard -w -50))
  (libraries oclock ocplib-endian sexplib))
