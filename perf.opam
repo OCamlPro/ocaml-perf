@@ -10,5 +10,7 @@ build: [
   [ "dune" "subst" ] {pinned}
   [ "dune" "build" "-p" name "-j" jobs ]
 ]
+install: [ "dune" "install" ]
+remove: [ "dune" "uninstall" ]
 depends: ["dune" {build} "ocplib-endian" "sexplib" "oclock"]
 dev-repo: "git://github.com/OCamlPro/ocaml-perf"
