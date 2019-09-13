@@ -1,12 +1,14 @@
 open OUnit2
 open Perf
 
-let rec fact acc = function
-  | 1 -> acc
-  | n -> fact (n*acc) (n-1)
+let fact n =
+  let rec fact_aux acc = function
+    | 1 -> acc
+    | n -> fact_aux (n * acc) (n - 1)
+  in fact_aux 1 n
 
 (* Test that counting cycles returns a positive int64 *)
-let count_cycles ctx =
+let count_cycles _ =
   let c = Perf.(make Attr.(make Kind.Cycles)) in
   Perf.enable c;
   let _ = fact 200 in
@@ -14,7 +16,7 @@ let count_cycles ctx =
   assert_bool "cycles count <= 0" (Perf.read c > 0L)
 
 (* Test Perf.reset *)
-let reset ctx =
+let reset _ =
   let c = Perf.(make Attr.(make Kind.Cycles)) in
   Perf.enable c;
   let _ = fact 2 in
@@ -23,7 +25,7 @@ let reset ctx =
   assert_equal 0L (Perf.read c)
 
 (* Test Perf.with_process *)
-let with_process ctx =
+let with_process _ =
   let r = Perf.with_process ["sleep"; "0"] [Perf.Attr.(make Kind.Cycles)] in
   let exec = match r with
     | `Ok e -> e

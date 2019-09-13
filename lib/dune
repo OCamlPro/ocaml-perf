@@ -1,0 +1,6 @@
+(library
+  (name perf)
+  (public_name perf)
+  (modules perf)
+  (c_names perf_stubs)
+  (libraries oclock ocplib-endian sexplib))
