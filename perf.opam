@@ -1,4 +1,4 @@
-opam-version: "1.2"
+opam-version: "2.0"
 name: "perf"
 version: "0.1"
 maintainer: "Pierre Chambart <pierre.chambart@ocamlpro.com>"
@@ -7,10 +7,15 @@ homepage: "http://github.com/OCamlPro/ocaml-perf"
 bug-reports: "http://github.com/OCamlPro/ocaml-perf/issues"
 license: "GPLv2"
 build: [
-  [ "oasis" "setup" ]
-  [ make ]
+  ["dune" "build" "-p" name "-j" jobs]
+  ["dune" "runtest" "-p" name] {with-test}
+  ["dune" "build" "@doc" "-p" name] {with-doc}
 ]
-install: [ make "install" ]
-remove: [ "ocamlfind" "remove" "perf" ]
-depends: ["ocamlfind" {build} "oasis" "ocplib-endian" "sexplib" "oclock"]
+depends: [
+  "dune" {>= "1.11.0"}
+  "ocplib-endian"
+  "sexplib"
+  "oclock"
+]
 dev-repo: "git://github.com/OCamlPro/ocaml-perf"
+synopsis: "Bindings to perf_event_open(2)"

@@ -1,0 +1,4 @@
+(executable
+  (name operf)
+  (modules operf)
+  (libraries perf))

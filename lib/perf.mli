@@ -10,7 +10,7 @@ module Attr : sig
 
   module Kind : sig
     type t =
-      (** Hardware *)
+      (* Hardware *)
       | Cycles
       | Instructions
       | Cache_references
@@ -21,8 +21,7 @@ module Attr : sig
       | Stalled_cycles_frontend
       | Stalled_cycles_backend
       | Ref_cpu_cycles
-
-      (** Software *)
+      (* Software *)
       | Cpu_clock
       | Task_clock
       | Page_faults

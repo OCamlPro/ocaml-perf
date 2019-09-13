@@ -1,13 +1,3 @@
-*.byte
-*.native
-setup.*
 _build
-_tags
-configure
-**/*.mldylib
-**/*.mllib
-**/*.clib
-myocamlbuild.ml
-**/META
-_obuild
-*.ocp
+*.merlin
+*.install
